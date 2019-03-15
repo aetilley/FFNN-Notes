@@ -1,0 +1,111 @@
+%Packages
+\documentclass{article}
+\usepackage[backend=bibtex]{biblatex}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage[all]{xy}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{tikz}
+\usepackage{mathrsfs}
+
+
+
+%Title
+\title{Maximizing Data Likelihood Implies Minimizing Cross Entropy}
+\date{}
+\author{Arthur Tilley}
+
+\newtheorem{theorem}{Theorem}
+
+%MAIN DOCUMENT
+\begin{document}
+
+\maketitle
+
+
+\begin{theorem}
+
+Let our model space be $$\mathscr{F} = \{Q_{f}\}_{f} =  \{\{Q_{f, \bar{x}}\}_{\bar{x}}\}_{f}  =  \{\{Q(\cdot ; f(\bar{x}))\}_{\bar{x}}\}_{f}$$  
+ some parameterized family of families of probability distributions where 
+$$Q_{f, \bar{x}}(\bar{y}) = Q(\bar{y} ; f(\bar{x}))$$ is the probability of the label $\bar{y}$, given parameters $f(\bar{x})$.  
+
+Furthermore, suppose we have some set of data $$D = \{(\bar{x}^{(i)}, \bar{y}^{(i)})\}_{1\leq i \leq M}$$ consisting of $M$ observations of \emph{features} $\bar{x}^{(i)}$ paired with \emph{labels} $\bar{y}^{(i)}$.\\
+
+Then maximizing data likelihood, that is picking the $f$ which makes $D$ most likely, is equivalent to each of the following: 
+\begin{enumerate}
+\item Minimizing the average cross-entropy 
+$$\frac{1}{M}\sum_{i = 1}^{M}H(P_{i}, Q_{f, \bar{x}^{(i)}})$$ between the model distributions $Q_{f, \bar{x}^{(i)}} = Q(\cdot; f(\bar{x}^{(i)}))$ and the one-hot sample distributions defined as
+$$P_{i}(\bar{y})= \mathbf{1}_{\bar{y}^{(i)}}(\bar{y}) = 
+\left\{ \begin{array}{ccc} 
+1 & \hbox{ if } \bar{y} = \bar{y_{i}} \\ 
+0 & \hbox{ if } \bar{y} \neq \bar{y_{i}}
+\end{array} \right.$$
+ 
+\item Minimizing the average cross-entropy 
+$$E_{\bar{x} \sim P} H(P_{\bar{x}}, Q_{f, \bar{x}}) = \sum_{\bar{x} \in D_{\bar{x}}} P(\bar{x}) H(P_{\bar{x}}, Q_{f, \bar{x}}) $$  where \\
+\begin{enumerate}
+\item $D_{\bar{x}}$  is just the set of all $\bar{x}$ that occur anywhere in the data: 
+$$D_{\bar{x}} = \{\bar{x} : \bar{x} = \bar{x}^{(i)} \hbox{ for some } 1\leq i \leq M\}$$ 
+\item $P(\bar{x})$ is the sample distribution of $\bar{x}$ in $D$:
+$$P(\bar{x}) = \frac{\#_{D}(\bar{x})}{M} =  \frac{\lvert \{ i: 1\leq i \leq M \hbox{ and } \bar{x}^{(i)} = \bar{x}\} \rvert}{M}$$
+\item $P_{\bar{x}}(\bar{y})$ is the sample distribution of $\bar{y}$ \emph{given} $\bar{x}$ in $D$:
+ $$P_{\bar{x}}(\bar{y}) := \frac{\#_{D}(\bar{x}, \bar{y})}{\#_{D}(\bar{x})} = \frac{\lvert \{ i: 1\leq i \leq M \hbox{ and } (\bar{x}^{(i)}, \bar{y}^{(i)} = (\bar{x}, \bar{y}) \} \rvert}{\lvert \{ i: 1\leq i \leq M \hbox{ and } \bar{x}^{(i)} = \bar{x}\} \rvert}.$$
+ \end{enumerate}
+ \end{enumerate}
+ 
+ Concisely, this is to say that
+ 
+ \begin{enumerate}
+ \item $$argmax_{f} Pr(D \vert f)  = argmin_{f}\frac{1}{M}\sum_{i=1}^{M} H(P_{i}, Q_{f, \bar{x}^{(i)}}), \hbox{ and }$$
+\item $$argmax_{f} Pr(D \vert f)  = argmin_{f} E_{\bar{x}\sim P} H(P_{\bar{x}}, Q_{f, \bar{x}}).$$
+\end{enumerate}
+
+
+\end{theorem}
+\bigskip
+\begin{proof}~\\
+
+Toward showing both equivalences we first notice that:\\
+$$argmax_{f} Pr(D \vert f)  = argmax_{f} \prod_{i} Pr((\bar{y}^{(i)}, \bar{x}^{(i)}) \vert f ) \quad \hbox{(since data is  i.i.d)}$$
+
+$$=argmax_{f} \prod_{i} Pr(\bar{y}^{(i)} \vert f, \bar{x}^{(i)} ) \quad \hbox{(features $\bar{x}^{i}$ are independent of  $f$)}$$
+ 
+$$=argmax_{f} \prod_{i} Q (\bar{y}^{(i)};f(\bar{x}^{(i)}) ) =argmax_{f} \prod_{i} Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})  \quad \hbox{ (by definition of $Q_{f, \bar{x}}$)}$$
+
+$$=argmax_{f} \log \prod_{i} Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})  \quad \hbox{(since $\log$ is monotonic increasing)}$$
+
+$$=argmax_{f} \sum_{i=1}^{M} \log {Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})} \quad \hbox{(since $\log{xy} = \log{x}+ \log{y}$)}$$
+$$=argmax_{f} \frac{1}{M} \sum_{i=1}^{M} \log {Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})} \quad \hbox{(positive constant multiplication is monotonic increasing)} $$
+$$=argmin_{f} - \frac{1}{M}\sum_{i=1}^{M} \log{Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})}  \quad \hbox{(insert minus sign and change $max$ to $min$) \quad (*)}$$
+
+We have labelled this last expression with a star (*) because we will use it to show both equivalences in the claim. \\
+
+Toward showing the first equivalence $(1.)$, let $D_{\bar{y}}$ be the set of all $\bar{y}$ values that occur anywhere in the data.  Then we can see that the function inside the $argmin$ in (*) is just 
+$$- \frac{1}{M}\sum_{i=1}^{M} \log{Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})} =-\frac{1}{M} \sum_{i=1}^{M} \left( \sum_{\bar{y}  \in D } \mathbf{1}_{\bar{y}_{i}}(\bar{y}) \log{Q_{f, \bar{x}^{(i)}} (\bar{y})}\right) $$
+(This inner sum is just a big disjunction (\emph{or}-statement) over all possible values that $\bar{y}^{(i)}$ could take; only one term is ever non-zero at a time.)
+$$=- \frac{1}{M}\sum_{i=1}^{M} \left( \sum_{\bar{y} \in D} P_{i}(\bar{y}) \log{Q_{f, \bar{x}^{(i)}} (\bar{y})}\right)  \quad \hbox{(by definition of $P_{i}$ )}$$
+$$=-\frac{1}{M} \sum_{i=1}^{M} \left( E_{P_{i}} \log{Q_{f, \bar{x}^{(i)}}}\right)  \quad \hbox{(by definition of expectation)}$$
+$$=\frac{1}{M}\sum_{i=1}^{M} H(P_{i}, Q_{f, \bar{x}^{(i)}})  \quad \hbox{(by definition of cross-entropy)}$$
+
+Thus have shown equivalence $(1)$
+ $$argmax_{f} Pr(D \vert f)  = argmin_{f} \frac{1}{M}\sum_{i=1}^{M} H(P_{i}, Q_{f, \bar{x}^{(i)}})$$  \\
+To show the second equivalence $(2.)$, we note that, when we get to (*) above, we may instead partition the sum (currently over all points in the data) into sums over groups determined by all possible values $\bar{x}$ and $\bar{y}$ that appear for any point in the data.  When rewriting the sums as over the groups, we just need to remember to multiply each term by the number of times that that particular value appeared in the data.  Thus, again, letting $D_{\bar{x}}$ and $D_{\bar{y}}$ represent the sets of all $\bar{x}$ and $\bar{y}$ values appearing anywhere in the data, we see that the function inside the $argmin$ in (*) is just
+
+$$ - \frac{1}{M}\sum_{i=1}^{M} \log{Q_{f, \bar{x}^{(i)}} (\bar{y}^{(i)})}  = - \frac{1}{M}\sum_{\bar{x} \in D_{\bar{x}} } \sum_{\bar{y}\in D_{\bar{y}}} \#_{D} (\bar{x}, \bar{y}) \log{Q_{f, \bar{x}} (\bar{y})}   \quad \hbox{(grouping the sum )}$$
+$$=  -\frac{1}{M} \sum_{\bar{x} \in D_{\bar{x}} } \#_{D} (\bar{x}) \sum_{\bar{y}\in D_{\bar{y}}} \frac{\#_{D}(\bar{x}, \bar{y})}{\#_{D}(\bar{x})} \log{Q_{f, \bar{x}} (\bar{y})} \quad \hbox{(multiply and divide by $\#_{D}(\bar{x}))$}$$
+$$= -\frac{1}{M} \sum_{\bar{x} \in D_{\bar{x}} } \#_{D}(\bar{x}) \sum_{\bar{y}\in D_{\bar{y}}} P_{\bar{x}}(\bar{y}) \log{Q_{f, \bar{x}} (\bar{y})}  \quad \hbox{(Definition of $P_{\bar{x}}$ )} $$
+$$= - \frac{1}{M}\sum_{\bar{x} \in D_{\bar{x}} } \#_{D}(\bar{x}) E_{P_{\bar{x}}}  \log{Q_{f, \bar{x}}}  \quad \hbox{(Definition of expectation )} $$
+$$= \frac{1}{M}\sum_{\bar{x} \in D_{\bar{x}} } \#_{D}(\bar{x}) H(P_{\bar{x}}, Q_{f, \bar{x}})  \quad \hbox{(Definition of cross-entropy )} $$
+$$= \sum_{\bar{x} \in D_{\bar{x}} } P(\bar{x})H(P_{\bar{x}}, Q_{f, \bar{x}})  \quad \hbox{(Definition $P$)} $$
+$$= E_{\bar{x}\sim P} H(P_{\bar{x}}, Q_{f, \bar{x}})  \quad \hbox{(Definition expectation.)} $$
+And this proves equivalence $(2)$. 
+$$argmax_{f} Pr(D \vert f)  = argmin_{f} E_{\bar{x}\sim P} H(P_{\bar{x}}, Q_{f, \bar{x}}).$$
+
+\end{proof}
+
+\end{document}
+
